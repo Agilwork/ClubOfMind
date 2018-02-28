@@ -1,0 +1,74 @@
+# v2 syntax
+version: '2'
+# Named volumes
+volumes:
+  # Postgres Data
+  club-of-mind-postgres-data:
+    driver: local
+  # Redis Data
+  club-of-mind-redis-data:
+    driver: local
+  # MySQL Data
+  club-of-mind-mysql-data:
+    driver: local
+services:
+  # Postgres (9.6)
+  postgres:
+    image: ambientum/postgres:9.6
+    container_name: club-of-mind-postgres
+    volumes:
+      - club-of-mind-postgres-data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_PASSWORD=tdv25
+      - POSTGRES_DB=tdv25
+      - POSTGRES_USER=tdv25
+
+  # MySQL (5.7)
+  mysql:
+    image: ambientum/mysql:5.7
+    container_name: club-of-mind-mysql
+    volumes:
+      - club-of-mind-mysql-data:/var/lib/mysql
+    ports:
+      - "3307:3306"
+    environment:
+      - MYSQL_ROOT_PASSWORD=tdv25
+      - MYSQL_DATABASE=tdv25
+      - MYSQL_USER=tdv25
+      - MYSQL_PASSWORD=tdv25
+
+  # Redis
+  cache:
+    image: ambientum/redis:3.2
+    container_name: club-of-mind-redis
+    command: --appendonly yes
+    volumes:
+      - club-of-mind-redis-data:/data
+    ports:
+      - "6385:6385"
+
+  # PHP (with Caddy)
+  api:
+    image: ambientum/php:7.1-caddy
+    container_name: club-of-mind-php
+    volumes:
+      - .:/var/www/app
+    ports:
+      - "81:8080"
+    links:
+      - postgres
+      - cache
+      - mysql
+
+  # Laravel Queues
+  queue:
+    image: ambientum/php:7.2
+    container_name: club-of-mind-queue
+    command: php artisan queue:listen
+    volumes:
+      - .:/var/www/app
+    links:
+      - postgres
+      - cache
