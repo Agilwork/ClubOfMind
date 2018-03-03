@@ -2,29 +2,14 @@
 version: '2'
 # Named volumes
 volumes:
-  # Postgres Data
-  club-of-mind-postgres-data:
-    driver: local
   # Redis Data
   club-of-mind-redis-data:
     driver: local
   # MySQL Data
   club-of-mind-mysql-data:
     driver: local
-services:
-  # Postgres (9.6)
-  postgres:
-    image: ambientum/postgres:9.6
-    container_name: club-of-mind-postgres
-    volumes:
-      - club-of-mind-postgres-data:/var/lib/postgresql/data
-    ports:
-      - "5432:5432"
-    environment:
-      - POSTGRES_PASSWORD=tdv25
-      - POSTGRES_DB=tdv25
-      - POSTGRES_USER=tdv25
 
+services:
   # MySQL (5.7)
   mysql:
     image: ambientum/mysql:5.7
@@ -32,12 +17,12 @@ services:
     volumes:
       - club-of-mind-mysql-data:/var/lib/mysql
     ports:
-      - "3307:3306"
+      - "3308:3306"
     environment:
-      - MYSQL_ROOT_PASSWORD=tdv25
-      - MYSQL_DATABASE=tdv25
-      - MYSQL_USER=tdv25
-      - MYSQL_PASSWORD=tdv25
+      - MYSQL_ROOT_PASSWORD=club_of_mind
+      - MYSQL_DATABASE=club_of_mind
+      - MYSQL_USER=club_of_mind
+      - MYSQL_PASSWORD=club_of_mind
 
   # Redis
   cache:
@@ -52,13 +37,11 @@ services:
   # PHP (with Caddy)
   api:
     image: ambientum/php:7.1-caddy
+    working_dir: /var/www/html/app/public
     container_name: club-of-mind-php
-    volumes:
-      - .:/var/www/app
     ports:
       - "81:8080"
     links:
-      - postgres
       - cache
       - mysql
 
@@ -70,5 +53,4 @@ services:
     volumes:
       - .:/var/www/app
     links:
-      - postgres
       - cache
