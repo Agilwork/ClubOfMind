@@ -12,8 +12,35 @@
 */
 
 $factory->define(App\User::class, function (Faker\Generator $faker) {
+    static $password;
+
     return [
         'name' => $faker->name,
-        'email' => $faker->email,
+        'email' => $faker->unique()->safeEmail,
+        'password' => $password ?: $password = app('hash')->make('secret'),
+        'cellphone' => $faker->phoneNumber,
+        'avatar' => 'none.jpg'
     ];
 });
+
+$factory->define(App\Comment::class, function (Faker\Generator $faker) {
+    return [
+        'text' => $faker->text(),
+        'user_id' => function () {
+            return factory(\App\User::class)->create()->id;
+        }
+    ];
+});
+
+$factory->define(App\Photo::class, function (Faker\Generator $faker) {
+    return [
+        'url' => $faker->url(),
+        'user_id' => function () {
+            return factory(\App\User::class)->create()->id;
+        },
+        'comment_id' => function () {
+            return factory(\App\Comment::class)->create()->id;
+        }
+    ];
+});
+
