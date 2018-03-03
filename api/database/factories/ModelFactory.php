@@ -32,3 +32,15 @@ $factory->define(App\Comment::class, function (Faker\Generator $faker) {
     ];
 });
 
+$factory->define(App\Photo::class, function (Faker\Generator $faker) {
+    return [
+        'url' => $faker->url(),
+        'user_id' => function () {
+            return factory(\App\User::class)->create()->id;
+        },
+        'comment_id' => function () {
+            return factory(\App\Comment::class)->create()->id;
+        }
+    ];
+});
+
