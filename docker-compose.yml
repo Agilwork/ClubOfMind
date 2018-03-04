@@ -1,21 +1,30 @@
-# v2 syntax
-version: '2'
-# Named volumes
+version: "2"
+
 volumes:
-  # Redis Data
-  club-of-mind-redis-data:
-    driver: local
   # MySQL Data
-  club-of-mind-mysql-data:
+  com-mysql-data:
     driver: local
 
 services:
-  # MySQL (5.7)
+  php:
+    build: ./devops/docker/php
+    volumes:
+      - .:/usr/share/nginx/html
+  web:
+    image: "nginx:1.13.8-alpine"
+    volumes:
+      - .:/usr/share/nginx/html
+      - ./devops/docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
+    ports:
+      - "82:80"
+    links:
+      - "php"
+
   mysql:
     image: ambientum/mysql:5.7
-    container_name: club-of-mind-mysql
+    container_name: com-mysql
     volumes:
-      - club-of-mind-mysql-data:/var/lib/mysql
+      - com-mysql-data:/var/lib/mysql
     ports:
       - "3308:3306"
     environment:
@@ -23,34 +32,3 @@ services:
       - MYSQL_DATABASE=club_of_mind
       - MYSQL_USER=club_of_mind
       - MYSQL_PASSWORD=club_of_mind
-
-  # Redis
-  cache:
-    image: ambientum/redis:3.2
-    container_name: club-of-mind-redis
-    command: --appendonly yes
-    volumes:
-      - club-of-mind-redis-data:/data
-    ports:
-      - "6385:6385"
-
-  # PHP (with Caddy)
-  api:
-    image: ambientum/php:7.1-caddy
-    working_dir: /var/www/html/app/public
-    container_name: club-of-mind-php
-    ports:
-      - "81:8080"
-    links:
-      - cache
-      - mysql
-
-  # Laravel Queues
-  queue:
-    image: ambientum/php:7.2
-    container_name: club-of-mind-queue
-    command: php artisan queue:listen
-    volumes:
-      - .:/var/www/app
-    links:
-      - cache
